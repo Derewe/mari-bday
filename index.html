@@ -130,7 +130,23 @@
       <p class="sound-hint">🔊 Включи звук и не забудь выключить беззвучный режим</p>
       <p class="cd-lead">Мари, это для тебя</p>
       
-      <div id="quiz-1" class="pw">
+      <div id="quiz-0" class="pw">
+        <p class="pw-title">Сначала главное: ты уже открыла подарки? 🎁</p>
+        <div class="pw-buttons">
+          <button class="pw-btn" type="button" onclick="gift('yes')">Да, открыла</button>
+          <button class="pw-btn alt" type="button" onclick="gift('no')">Ещё нет</button>
+        </div>
+        <button class="pw-btn alt" type="button" onclick="gift('read')" style="margin-top:4px;font-size:14px;padding:10px 18px;">Сначала хочу почитать (будет спойлер)</button>
+      </div>
+
+      <div id="quiz-0b" class="pw" style="display:none;">
+        <p class="pw-title">Тогда сначала открой их 🎁<br><span style="font-size:16px;font-family:Manrope,sans-serif;color:rgba(244,238,250,.7);font-style:normal;">В тексте дальше есть про них. Я подожду</span></p>
+        <div class="pw-buttons">
+          <button class="pw-btn" type="button" onclick="gift('yes')">Всё, открыла!</button>
+        </div>
+      </div>
+
+      <div id="quiz-1" class="pw" style="display:none;">
         <p class="pw-title">Какой сегодня день?</p>
         <div class="pw-buttons">
           <button class="pw-btn alt" type="button" onclick="checkQ1(false)">Обычный</button>
@@ -192,6 +208,12 @@
   </main>
 
 <script>
+  function gift(ans){
+    document.getElementById('quiz-0').style.display = 'none';
+    document.getElementById('quiz-0b').style.display = 'none';
+    if (ans === 'no') { document.getElementById('quiz-0b').style.display = ''; return; }
+    document.getElementById('quiz-1').style.display = '';
+  }
   function checkQ1(isCorrect) {
     var box = document.getElementById('quiz-1');
     var err = document.getElementById('err-1');
