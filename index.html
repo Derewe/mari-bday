@@ -16,21 +16,8 @@
     padding-bottom:env(safe-area-inset-bottom,0px);
   }
   *,*::before,*::after{box-sizing:inherit}
-  html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
-<audio id="bgm" src="song.mp3" loop preload="auto"></audio>
-<script>
-  (function(){
-    var a = document.getElementById('bgm'), started = false;
-    function start(){
-      if (started) return;
-      a.volume = 0.6;
-      a.play().then(function(){ started = true; }).catch(function(){});
-    }
-    document.addEventListener('submit', start, true);
-    document.addEventListener('click', start, true);
-    document.addEventListener('touchend', start, true);
-  })();
-</script>
+  html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%;background:#241A47;transition:background 3.2s ease}
+
   body{margin:0;min-height:100%;background:var(--night);color:var(--mist);
     font-family:Manrope,"Segoe UI",Roboto,Arial,sans-serif;font-size:17px;line-height:1.6;
     -webkit-font-smoothing:antialiased;overflow-x:hidden}
@@ -274,11 +261,8 @@
     
     // Запускаем музыку с 30-й секунды
     var audio = document.getElementById('bg-music');
-    if (audio) { 
-      audio.volume = 0.6; 
-      audio.currentTime = 30;
-      audio.play().catch(function(e){}); 
-    }
+    if (audio && audio.paused) { audio.play().catch(function(e){}); }
+    document.documentElement.style.background = '#8A6A9E';
 
     document.getElementById('countdown').classList.add('gone');
     document.getElementById('stars').classList.add('off');
@@ -309,6 +293,22 @@
       input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
     }
   });
+</script>
+<script>
+  (function(){
+    var a = document.getElementById('bg-music'); if (!a) return;
+    a.volume = 0.6;
+    var seeked = false;
+    function seek(){ if (seeked) return; try { a.currentTime = 30; seeked = true; } catch(e){} }
+    if (a.readyState >= 1) seek(); else a.addEventListener('loadedmetadata', seek);
+    var evs = ['pointerdown','touchend','click','keydown'];
+    function start(){
+      if (a.readyState >= 1) seek();
+      var p = a.play();
+      if (p && p.then) p.then(function(){ evs.forEach(function(e){ document.removeEventListener(e, start, true); }); }).catch(function(){});
+    }
+    evs.forEach(function(e){ document.addEventListener(e, start, true); });
+  })();
 </script>
 </body>
 </html>
