@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мари, с днём рождения</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#140E2E; --dusk:#2A1F55; --rose:#F2B5C4; --gold:#F7D58B; --mist:#F4EEFA; --ink:#2B2140;
+    --dawn-top:#F6C9B4; --dawn-mid:#F9E3C8; --paper:#FFF8F1;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *,*::before,*::after{box-sizing:inherit}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+  body{margin:0;min-height:100%;background:var(--night);color:var(--mist);
+    font-family:Manrope,"Segoe UI",Roboto,Arial,sans-serif;font-size:17px;line-height:1.6;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+  /* Sky */
+  .sky{position:fixed;inset:0;z-index:0;
+    background:linear-gradient(180deg,var(--night) 0%,var(--dusk) 70%,#4A3570 100%);
+    transition:opacity 3.2s ease}
+  .sky.dawn{opacity:0}
+  .sky-dawn{position:fixed;inset:0;z-index:0;opacity:0;
+    background:linear-gradient(180deg,#7B6BB0 0%,var(--dawn-top) 45%,var(--dawn-mid) 75%,var(--paper) 100%);
+    transition:opacity 3.2s ease}
+  .sky-dawn.on{opacity:1}
+  .stars{position:fixed;inset:0;z-index:1;pointer-events:none;transition:opacity 2.4s ease}
+  .stars.off{opacity:0}
+  .star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.7;
+    animation:tw 4s ease-in-out infinite}
+  @keyframes tw{50%{opacity:.15}}
+
+  .sun{position:fixed;left:50%;bottom:-18vh;width:min(52vw,320px);aspect-ratio:1;z-index:2;
+    transform:translate(-50%,0);border-radius:50%;
+    background:radial-gradient(circle,#FFF4D6 0%,var(--gold) 45%,rgba(247,213,139,0) 70%);
+    transition:transform 4s cubic-bezier(.2,.7,.2,1)}
+  .sun.up{transform:translate(-50%,-34vh)}
+
+  .mountains{position:fixed;left:0;right:0;bottom:0;z-index:3;width:100%;height:auto;display:block;pointer-events:none}
+  .mountains path{transition:fill 3.2s ease}
+
+  /* Countdown & Quiz */
+  .countdown{position:relative;z-index:4;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:24px 20px 28vh;transition:opacity 1.2s ease}
+  .countdown.gone{opacity:0;pointer-events:none}
+  .cd-lead{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:clamp(22px,5.5vw,30px);
+    color:var(--rose);margin:0 0 18px}
+  .sound-hint{font-size:13px;color:var(--gold);margin-top:-10px;margin-bottom:20px;letter-spacing:0.5px;opacity:0.8;animation:pulse 2s infinite}
+  @keyframes pulse{50%{opacity:0.4}}
+  
+  .pw{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(100%,340px)}
+  .pw-title{font-family:"Cormorant Garamond",Georgia,serif;font-size:26px;line-height:1.2;color:var(--mist);margin:0}
+  .pw-buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%}
+  
+  .pw-input{width:100%;text-align:center;font-family:"Cormorant Garamond",Georgia,serif;font-size:40px;letter-spacing:.08em;
+    background:rgba(244,238,250,.08);border:1px solid rgba(244,238,250,.35);border-radius:18px;color:var(--mist);padding:10px 14px}
+  .pw-input::placeholder{color:rgba(244,238,250,.3)}
+  .pw-input:focus{outline:2px solid var(--gold);outline-offset:3px}
+  
+  .pw-btn{font-family:Manrope,sans-serif;font-weight:600;font-size:16px;color:var(--night);background:var(--gold);
+    border:0;border-radius:999px;padding:12px 24px;cursor:pointer;transition:transform 0.2s}
+  .pw-btn:active{transform:scale(0.96)}
+  .pw-btn.alt{background:rgba(244,238,250,.15);color:var(--mist);border:1px solid rgba(244,238,250,.3)}
+  .pw-btn:focus-visible{outline:2px solid var(--mist);outline-offset:3px}
+  
+  .pw-err{min-height:1.4em;margin:0;font-size:14px;color:var(--rose)}
+  .shake{animation:shake .4s}
+  @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  /* Greeting */
+  .greeting{position:relative;z-index:5;display:none;color:var(--ink)}
+  .greeting.show{display:block}
+  .hero{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:40px 20px 30vh}
+  .hero h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;margin:0;
+    font-size:clamp(46px,13vw,104px);line-height:.98;letter-spacing:-.01em;color:var(--ink);
+    opacity:0;transform:translateY(14px);transition:opacity 1.6s ease 2.4s,transform 1.6s ease 2.4s}
+  .hero .date{margin-top:18px;font-size:16px;color:rgba(43,33,64,.65);
+    opacity:0;transition:opacity 1.4s ease 3.4s}
+  .greeting.show .hero h1{opacity:1;transform:none}
+  .greeting.show .hero .date{opacity:1}
+  .scroll-hint{margin-top:34px;font-size:14px;color:rgba(43,33,64,.55);opacity:0;transition:opacity 1.2s ease 4.4s}
+  .greeting.show .scroll-hint{opacity:1}
+
+  .letter-wrap{background:var(--paper);position:relative;z-index:6;padding:56px 22px 80px}
+  .letter{max-width:34rem;margin:0 auto}
+  .photos{display:grid;gap:14px;margin:0 0 44px}
+  .photos.two{grid-template-columns:1fr 1fr}
+  .photos img{width:100%;max-width:100%;display:block;border-radius:22px;object-fit:cover;aspect-ratio:4/5}
+  .letter p{font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(21px,5vw,24px);line-height:1.62;margin:0 0 1.1em;color:var(--ink)}
+  .letter .sign{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:26px;margin-top:0.5em;color:#6B4E8A}
+
+  /* Rose Graphic & Petals */
+  .rose-graphic{width:80px;height:auto;margin:2em auto 1em;display:block;opacity:0.8;}
+  .petal{position:fixed;top:-20px;background:var(--rose);border-radius:15px 0px 15px 0px;opacity:0.6;pointer-events:none;z-index:7;animation:fall linear infinite;}
+  @keyframes fall{
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { transform: translate(20px, 110vh) rotate(360deg); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition-duration:.01ms!important;transition-delay:0ms!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+  <audio id="bg-music" src="song.mp3" preload="auto" loop></audio>
+
+  <div class="sky" id="sky"></div>
+  <div class="sky-dawn" id="dawn"></div>
+  <div class="stars" id="stars" aria-hidden="true"></div>
+  <div class="sun" id="sun" aria-hidden="true"></div>
+
+  <svg class="mountains" viewBox="0 0 1440 360" preserveAspectRatio="none" aria-hidden="true">
+    <path id="m1" fill="#3A2A66" d="M0 250 L120 170 L210 215 L330 110 L430 190 L520 140 L640 60 L760 160 L860 120 L980 200 L1090 95 L1200 175 L1310 130 L1440 200 L1440 360 L0 360 Z"/>
+    <path id="m2" fill="#241A47" d="M0 300 L150 230 L260 270 L400 200 L520 260 L660 210 L780 280 L920 225 L1050 275 L1180 215 L1300 265 L1440 235 L1440 360 L0 360 Z"/>
+  </svg>
+
+  <main>
+    <section class="countdown" id="countdown" aria-live="polite">
+      <p class="sound-hint">🔊 Рекомендуется включить звук</p>
+      <p class="cd-lead">Мари, это для тебя</p>
+      
+      <div id="quiz-1" class="pw">
+        <p class="pw-title">Какой сегодня день?</p>
+        <div class="pw-buttons">
+          <button class="pw-btn alt" type="button" onclick="checkQ1(false)">Обычный</button>
+          <button class="pw-btn alt" type="button" onclick="checkQ1(false)">Не знаю</button>
+          <button class="pw-btn" type="button" onclick="checkQ1(true)">Лучший</button>
+        </div>
+        <p class="pw-err" id="err-1"></p>
+      </div>
+
+      <div id="quiz-2" class="pw" style="display:none;">
+        <p class="pw-title">Кто у нас такой милый в экран смотрит?</p>
+        <div class="pw-buttons">
+          <button class="pw-btn" type="button" onclick="checkQ2(true)">Я</button>
+          <button class="pw-btn alt" type="button" onclick="checkQ2(false)">Точно не я</button>
+        </div>
+        <p class="pw-err" id="err-2"></p>
+      </div>
+
+      <form class="pw" id="pwForm" autocomplete="off" style="display:none;">
+        <p class="pw-title">Тогда напиши дату<br><span style="font-size:16px; font-family:Manrope,sans-serif; color:rgba(244,238,250,.7); font-style:normal;">(день и месяц)</span></p>
+        <input id="pw" class="pw-input" inputmode="numeric" placeholder="дд.мм" maxlength="10" aria-describedby="pwErr">
+        <button type="submit" class="pw-btn" style="padding:13px 34px;">Открыть</button>
+        <p class="pw-err" id="pwErr" role="alert"></p>
+      </form>
+    </section>
+
+    <section class="greeting" id="greeting">
+      <div class="hero">
+        <h1>Мари,<br>с днём рождения</h1>
+        <div class="date">5 октября</div>
+        <div class="scroll-hint">Пролистай ниже</div>
+      </div>
+      <div class="letter-wrap">
+        <article class="letter">
+          <div class="photos" id="photos"></div>
+          <p>Мари, я безумно счастлив, что жизнь нас с тобой свела.</p>
+          <p>Я знаю, какой у тебя сейчас тяжелый период с учебой и работой, но помни одно: никто не справляется со всем так, как ты. Ты совмещаешь в себе невозможное: ошеломительную красоту, острый ум, которому многие могут позавидовать, уникальный талант к рисованию и дар быть потрясающим тренером. Твои подопечные должны быть счастливы, что с ними работает такой человек.</p>
+          <p>Ты восхитительная, редкая и настоящая — как первый подснежник после долгой зимы, и такая одна на всей земле.</p>
+          <p>Я желаю, чтобы твоя карьера и в спорте, и в дизайне взлетела до таких высот, о которых нельзя и мечтать. Пусть тебе приносит огромное удовольствие всё, что ты делаешь и создаешь. Никто не умеет так точно замечать прекрасное в мелочах и так отдаваться своему делу, как ты.</p>
+          <p>Я всегда буду рядом и готов помочь в любой ситуации.</p>
+          <p>С днем варения, Мари! С твоим лучшим днем!</p>
+          <p>Подарок, который ты получишь, я хотел вручить еще на наш первый совместный день рождения. Пусть эти часы помогут тебе справляться с твоим плотным графиком и выведут твой здоровый образ жизни на новый уровень. А духи — для того, чтобы, когда ты заходишь куда-нибудь, люди оборачивались и искали взглядом ту, что излучает такой свет и аромат.</p>
+          
+          <!-- Графика розы -->
+          <svg class="rose-graphic" viewBox="0 0 24 24" fill="none" stroke="#F2B5C4" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22V12"></path>
+            <path d="M12 14c-2.5 0-4-1.5-4-3s1.5-3 4-3 4 1.5 4 3-1.5 3-4 3z"></path>
+            <path d="M12 8c-1.5 0-2.5-1-2.5-2S10.5 4 12 4s2.5 1 2.5 2S13.5 8 12 8z"></path>
+            <path d="M8 12c-1.5 0-3-1-3-2.5S6 7 7.5 7"></path>
+            <path d="M16 12c1.5 0 3-1 3-2.5S18 7 16.5 7"></path>
+            <path d="M12 18c-2 0-3 1-3 2"></path>
+            <path d="M12 17c2 0 3 1 3 2"></path>
+          </svg>
+
+          <p class="sign" style="text-align: center;">Андрей</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+<script>
+  function checkQ1(isCorrect) {
+    var box = document.getElementById('quiz-1');
+    var err = document.getElementById('err-1');
+    if (isCorrect) {
+      box.style.display = 'none';
+      document.getElementById('quiz-2').style.display = 'flex';
+    } else {
+      err.textContent = 'А ну-ка подумай ещё раз!';
+      box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+    }
+  }
+
+  function checkQ2(isCorrect) {
+    var box = document.getElementById('quiz-2');
+    var err = document.getElementById('err-2');
+    if (isCorrect) {
+      box.style.display = 'none';
+      document.getElementById('pwForm').style.display = 'flex';
+    } else {
+      err.textContent = 'Ошибаешься, именно ты!';
+      box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+    }
+  }
+
+  (function(){
+    var box = document.getElementById('stars');
+    for (var i = 0; i < 70; i++) {
+      var s = document.createElement('span');
+      s.className = 'star';
+      s.style.left = (Math.random()*100) + '%';
+      s.style.top = (Math.random()*65) + '%';
+      s.style.animationDelay = (Math.random()*4) + 's';
+      if (Math.random() > .8) { s.style.width = s.style.height = '3px'; }
+      box.appendChild(s);
+    }
+  })();
+
+  var PHOTOS = [];
+  (function(){
+    var box = document.getElementById('photos');
+    if (!PHOTOS.length) { box.style.display = 'none'; return; }
+    if (PHOTOS.length === 2) box.classList.add('two');
+    PHOTOS.forEach(function(src){
+      var img = document.createElement('img');
+      img.src = src; img.alt = 'Мари'; img.loading = 'lazy';
+      box.appendChild(img);
+    });
+  })();
+
+  function startPetals() {
+    for (var i = 0; i < 25; i++) {
+      var p = document.createElement('div');
+      p.className = 'petal';
+      p.style.left = (Math.random() * 100) + 'vw';
+      p.style.width = (Math.random() * 10 + 6) + 'px';
+      p.style.height = (Math.random() * 10 + 6) + 'px';
+      p.style.animationDuration = (Math.random() * 4 + 5) + 's';
+      p.style.animationDelay = (Math.random() * 5) + 's';
+      document.body.appendChild(p);
+    }
+  }
+
+  var revealed = false;
+  function reveal(){
+    if (revealed) return;
+    revealed = true;
+    
+    // Запускаем музыку с 30-й секунды
+    var audio = document.getElementById('bg-music');
+    if (audio) { 
+      audio.volume = 0.6; 
+      audio.currentTime = 30;
+      audio.play().catch(function(e){}); 
+    }
+
+    document.getElementById('countdown').classList.add('gone');
+    document.getElementById('stars').classList.add('off');
+    document.getElementById('sky').classList.add('dawn');
+    document.getElementById('dawn').classList.add('on');
+    document.getElementById('sun').classList.add('up');
+    document.getElementById('m1').setAttribute('fill', '#B48FB8');
+    document.getElementById('m2').setAttribute('fill', '#8A6A9E');
+    
+    startPetals();
+
+    setTimeout(function(){
+      document.getElementById('countdown').style.display = 'none';
+      document.getElementById('greeting').classList.add('show');
+    }, 900);
+  }
+
+  var ACCEPT = ['0510', '510'];
+  document.getElementById('pwForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var input = document.getElementById('pw');
+    var v = input.value.replace(/\D/g, '');
+    if (ACCEPT.indexOf(v) !== -1) {
+      input.blur();
+      reveal();
+    } else {
+      document.getElementById('pwErr').textContent = 'Не то. Подсказка: день и месяц';
+      input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
+    }
+  });
+</script>
+</body>
+</html>
